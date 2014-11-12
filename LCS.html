@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript">
+		function submit(){
+
+			var stringX = document.getElementById("StringX").value;
+			var stringY = document.getElementById("StringY").value;
+			var delay = document.getElementById("Delay").value;
+			var proceed = 0;
+			stringX = stringX.trim();
+			stringY = stringY.trim();
+			delay = delay.trim();
+			var m = stringX.length;
+			var n = stringY.length;
+			var c = create2DArray(m+1,n+1);
+			var b = create2DArray(m+1,n+1);
+			var i;
+			var j;
+			var lcs = "";
+
+			// check input
+			if ((isNaN(delay)) || (delay < 0)){
+				proceed = 1;
+				alert("Delay must be a positive number!");
+			}
+			else	if (delay >= 50){
+				proceed = 1;
+				alert("Delay cannot be greater than 50!");
+			}
+			else if(stringX.length == 0){
+				proceed = 1;
+				alert("String X must not be empty!");
+			}
+			else if(stringY.length == 0){
+				proceed = 1;
+				alert("String Y must not be empty!");
+			}
+			else if((stringX.indexOf(' ') > -1) && (stringX.length > 0)){
+				proceed = 1;
+				alert("String X must not contain Blank space!");
+			}
+			else if((stringY.indexOf(' ') > -1) && (stringY.length > 0)){
+				proceed = 1;
+				alert("String Y must not contain Blank space!");
+			}
+
+			// do LCS algorithm
+			if(proceed == 0){
+				document.getElementById("Result").innerHTML = "";
+				for(i = 1; i <= m; i++){
+					c[i][0] = 0;
+				}
+				for(j = 0; j <= n; j++){
+					c[0][j] = 0;
+				}
+				for(i = 1; i <= m; i++){
+					for(j = 1; j <= n; j++){
+						if(stringX.charAt(i-1) == (stringY.charAt(j-1))){
+							c[i][j] =  c[i-1][j-1] + 1;
+							b[i][j] =  "\\ ";
+						}
+						else{
+							if(c[i-1][j] >= c[i][j-1]){
+								c[i][j] = c[i-1][j];
+								b[i][j] = "| ";
+							}
+							else{
+								c[i][j] = c[i][j-1];
+								b[i][j] = "- ";
+							}
+						}
+					}
+				}
+
+				// make a table
+				var rows = m*2+3;
+				var columns = n*2+3;
+				var str = "";
+				str += '<table id="Table" border="1" cellspacing="1" cellpadding="5">';
+				for(i = 0; i < rows; i++){
+					str += '<tr>';
+					for (j = 0; j < columns; j++){
+						str += '<td align="center" style="width: 20px; height: 20px"><b></b>' + '</td>';
+					}
+					str += '</tr>';
+				}
+				str += '</table>';
+				document.getElementById('targetElement').innerHTML = str;
+
+				// fill the table
+				var table = document.getElementById("Table");
+				for(i = 1; i <= m; i++){
+					table.rows[i*2+2].cells[0].innerHTML = stringX.charAt(i-1);
+				}
+				for(j = 1; j <= n; j++){
+					table.rows[0].cells[j*2+2].innerHTML = stringY.charAt(j-1);
+				}
+				for(j = 1; j <= n+1; j++){
+					table.rows[2].cells[j*2].innerHTML = c[0][j-1];
+				}
+
+				for(i = 1; i <= m+1; i++){
+					table.rows[i*2].cells[2].innerHTML = c[i-1][0];
+				}
+
+				var k = 0;
+				var q = 1;
+				var u = 0;
+				var v = 0;
+				i = 1;
+				j = 1;
+				delay = delay * 100;
+				function fillBC () {
+					setTimeout(function () {
+						if(k == 0){
+							for(u = 1; u < i*2+2; u++){
+								table.rows[u].cells[j*2+2].style.backgroundColor = "yellow";
+							}
+
+							for(v = 1; v < j*2+2; v++){
+								table.rows[i*2+2].cells[v].style.backgroundColor = "yellow";
+							}
+							table.rows[i*2+2].cells[j*2+2].style.backgroundColor = "orange";
+							table.rows[0].cells[j*2+2].style.backgroundColor = "orange";
+							table.rows[i*2+2].cells[0].style.backgroundColor = "orange";
+							k = 1;
+						}
+						else if(k == 1){
+							table.rows[i*2+2].cells[j*2+2].innerHTML = c[i][j];
+							k = 2;
+						}
+						else if(k == 2){
+							if(b[i][j].localeCompare("| ") == 0){
+								table.rows[i*2+1].cells[j*2+2].innerHTML = b[i][j].bold();
+								table.rows[i*2+1].cells[j*2+2].style.backgroundColor = "orange";
+							}
+							else if(b[i][j].localeCompare("- ") == 0){
+								table.rows[i*2+2].cells[j*2+1].innerHTML = b[i][j].bold();
+								table.rows[i*2+2].cells[j*2+1].style.backgroundColor = "orange";
+							}
+							else{
+								table.rows[i*2+1].cells[j*2+1].innerHTML = b[i][j].bold();
+								table.rows[i*2+1].cells[j*2+1].style.backgroundColor = "orange";
+							}
+							k = 3;
+						}
+						else {
+							for(u = 0; u < rows; u++){
+								for(v = 0; v < columns; v++){
+									table.rows[u].cells[v].style.backgroundColor = "white";
+								}
+							}
+							j++;
+							if(j>n){
+								i++;
+								j=1;
+							}
+							k = 0;
+						}
+						q++;
+						if (q <= (m)*(n)*4) {
+							fillBC();
+						}
+						else if (q == (m*n*4)+1){
+							k = 0;
+							i = m;
+							j = n;
+							function result() {
+								setTimeout(function () {
+									if(k == 0){
+										table.rows[i*2+2].cells[j*2+2].style.backgroundColor = "yellow";
+										k = 1;
+									}
+									else if(k == 1){
+										if((i != 0) && (j != 0)){
+											if(b[i][j].localeCompare("| ") == 0){
+												table.rows[i*2+1].cells[j*2+2].style.backgroundColor = "yellow";
+												i--;
+												k = 0;
+											}
+											else if(b[i][j].localeCompare("- ") == 0){
+												table.rows[i*2+2].cells[j*2+1].style.backgroundColor = "yellow";
+												j--;
+												k = 0;
+											}
+											else{
+												table.rows[i*2+1].cells[j*2+1].style.backgroundColor = "yellow";
+												i--;
+												j--;
+												k = 2;
+											}
+										}
+										else{
+											i--;
+											j--;
+										}
+									}
+									else {
+										for(u = 1; u < (i+2)*2; u++){
+											table.rows[u].cells[(j+2)*2].style.backgroundColor = "orange";
+										}
+
+										for(v = 1; v < (j+2)*2; v++){
+											table.rows[(i+2)*2].cells[v].style.backgroundColor = "orange";
+										}
+										table.rows[(i+2)*2].cells[(j+2)*2].style.backgroundColor = "red";
+										table.rows[0].cells[(j+2)*2].style.backgroundColor = "red";
+										table.rows[(i+2)*2].cells[0].style.backgroundColor = "red";
+										lcs = stringX.charAt(i) + lcs;
+										k = 0;
+									}
+									if ((i >= 0) && (j >= 0)) {
+										result();
+									}
+									else{
+										if(lcs.length > 0){
+											document.getElementById("Result").innerHTML = "<b>LCS: " + lcs + "</b>";
+										}
+										else{
+											document.getElementById("Result").innerHTML = "<b>There is no common subsequence</b>";
+										}
+									}
+								}, delay)
+							}
+							result();
+						}
+						else{
+						}
+					}, delay)
+				}
+				fillBC();
+			}
+		}
+
+		function create2DArray(rows,columns) {
+			var x = new Array(rows);
+			for (var i = 0; i < rows; i++) {
+				x[i] = new Array(columns);
+			}
+			return x;
+		}
+	</script>
+</head>
+
+<body>
+
+<p><b> Longest Common Subsequence</b></p>
+<p>String X</p>
+<input type="text"  id="StringX" />
+<br>
+<p>String Y</p>
+<input type="text" id="StringY" />
+<br>
+<p>Delay (0 - 50)</p>
+<input type="text" id="Delay" value = "10"/>
+<br>
+<br>
+<button onclick="submit()" >Submit</button><p id="Result"></p>
+<div id="targetElement"></div>
+
+</body>
+</html>
